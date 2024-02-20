@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: admincoren
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: usercoren
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+    networks:
+      - zabbix_net
+
+  zabbix-server:
+    image: zabbix/zabbix-server-mysql:latest
+    restart: always
+    depends_on:
+      - mariadb
+    environment:
+      DB_SERVER_HOST: mariadb
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: usercoren
+    volumes:
+      - ./alertscripts:/usr/lib/zabbix/alertscripts
+    networks:
+      - zabbix_net
+
+  zabbix-web:
+    image: zabbix/zabbix-web-apache-mysql:latest
+    restart: always
+    depends_on:
+      - zabbix-server
+    ports:
+      - 8082:8080
+    environment:
+      DB_SERVER_HOST: mariadb
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: usercoren
+    networks:
+      - zabbix_net
+
+  zabbix-agent:
+    image: zabbix/zabbix-agent:latest
+    restart: always
+    environment:
+      ZBX_HOSTNAME: zabbix-agent
+      ZBX_SERVER_HOST: zabbix-server
+    networks:
+      - zabbix_net
+
+  zabbix-java-gateway:
+    image: zabbix/zabbix-java-gateway:latest
+    restart: always
+    depends_on:
+      - zabbix-server
+    networks:
+      - zabbix_net
+
+  zabbix-snmptraps:
+    image: zabbix/zabbix-snmptraps:latest
+    restart: always
+    depends_on:
+      - zabbix-server
+    environment:
+      ZBX_HOSTNAME: zabbix-snmptraps
+      ZBX_SERVER_HOST: zabbix-server
+    networks:
+      - zabbix_net
+
+networks:
+  zabbix_net:

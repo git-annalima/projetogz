@@ -1,0 +1,38 @@
+version: '3.9'
+services:
+  glpi_app:
+    image: sdbrasil/glpi:10.0.12
+    container_name: glpi-10
+    volumes:
+      - ~/projetogz/glpipro/glpi_config:/etc/glpi
+      - ~/projetogz/glpipro/glpi_documents:/var/lib/glpi/files/data-documents
+      - ~/projetogz/glpipro/glpi_plugins:/usr/share/glpi/plugins
+      - ~/projetogz/glpipro/glpi_marketplace:/usr/share/glpi/marketplace
+      - ~/projetogz/glpipro/glpi_files_plugins:/var/lib/glpi/files/_plugins
+      - ~/projetogz/glpipro/glpi_backup:/backup
+    networks:
+      - glpi
+    ports:
+      - 8081:80
+
+  glpidb:
+    image: percona/percona-server:8.0
+    container_name: db-glpi-10
+    networks:
+      - glpi
+    ports:
+      - 3307:3306
+    volumes:
+      - ~/projetogz/glpipro/glpi_db_log:/var/log/mysql
+      - ~/projetogz/glpipro/glpi_db_lib:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=admcoren
+      - MYSQL_DATABASE=glpi
+      - MYSQL_USER=glpi
+      - MYSQL_PASSWORD=usercoren
+      - TZ=America/Recife
+
+networks:
+  glpi:
+    driver: bridge
+
