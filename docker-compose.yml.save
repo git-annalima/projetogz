@@ -1,0 +1,26 @@
+version: '3.8'
+
+
+services:
+  mysql:
+    container_name: postgres-server
+    image: postgres: 13.0
+    networks:
+      - zabbix-net
+    ports:
+      - '5433:5432'
+    volumes:
+      - './postgres:/var/lib/postgresql/data \'
+    environment:
+      - POSTGRES_DB=zabbix
+      - POSTGRES_USER=zabbix
+      - POSTGRES_PASSWORD=coren
+
+  zabbix-server:
+    container_name: zabbix-server
+    image: zabbix/zabbix-server-pgsql:alpine-6.4-latest
+    networks:
+      - zabbix-net
+    links:
+      - postgres-server
+    restart: always
